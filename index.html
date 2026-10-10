@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A professional, responsive weather dashboard built with Vanilla JavaScript, HTML5, and CSS3 using the OpenWeather API.">
+    <title>SkyPulse | Professional Weather Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts: Inter for clean typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22><text y=%2226%22 font-size=%2224%22>🌤️</text></svg>">
+</head>
+<body>
+    <div class="app-wrapper">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <span class="brand-icon" aria-hidden="true">🌤️</span>
+                <div>
+                    <h1 class="brand-title">SkyPulse</h1>
+                    <p class="brand-subtitle">Live Meteorological Intelligence</p>
+                </div>
+            </div>
+
+            <div class="header-controls">
+                <!-- Temperature Unit Toggle (°C / °F) -->
+                <button type="button" id="unit-toggle" class="control-btn unit-btn" aria-label="Toggle between Celsius and Fahrenheit" title="Switch units">
+                    <span id="unit-c" class="unit-label active">°C</span>
+                    <span class="unit-divider">/</span>
+                    <span id="unit-f" class="unit-label">°F</span>
+                </button>
+                <!-- API Key Configuration Modal Trigger -->
+                <button type="button" id="api-modal-btn" class="control-btn icon-btn" aria-label="Configure API Key" title="API Key Settings">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="dashboard-main">
+            <!-- Search & Actions Bar -->
+            <section class="search-section" aria-label="City Search">
+                <form id="search-form" class="search-form" role="search" novalidate>
+                    <div class="search-input-wrapper">
+                        <svg class="search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        <label for="city-input" class="sr-only">Search city name</label>
+                        <input
+                            type="text"
+                            id="city-input"
+                            class="search-input"
+                            placeholder="Search city (e.g. Tokyo, London, San Francisco)..."
+                            autocomplete="off"
+                            spellcheck="false"
+                            required
+                        >
+                        <button type="button" id="clear-search-btn" class="clear-input-btn hidden" aria-label="Clear search input">
+                            ✕
+                        </button>
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" id="search-btn" class="primary-btn">
+                            <span>Search</span>
+                        </button>
+                        <button type="button" id="location-btn" class="secondary-btn icon-only-mobile" aria-label="Use current location" title="Get weather for current location">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polygon points="12 2 15 12 12 22 9 12 12 2"></polygon>
+                            </svg>
+                            <span class="btn-text">My Location</span>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Validation and feedback message -->
+                <div id="validation-msg" class="validation-msg hidden" role="alert" aria-live="polite"></div>
+
+                <!-- Recent Searches Chips -->
+                <div id="recent-searches-container" class="recent-searches-container hidden">
+                    <span class="recent-title">Recent:</span>
+                    <div id="recent-chips" class="recent-chips" role="group" aria-label="Recent cities"></div>
+                    <button type="button" id="clear-recents-btn" class="clear-recents-btn" aria-label="Clear recent searches history">Clear</button>
+                </div>
+            </section>
+
+            <!-- Status Displays (Loading, Error, Welcome) -->
+            <section id="status-container" class="status-container" aria-live="polite">
+                <!-- Welcome / Initial State -->
+                <div id="welcome-state" class="status-card welcome-card">
+                    <div class="welcome-icon" aria-hidden="true">🌍</div>
+                    <h2>Explore Global Weather</h2>
+                    <p>Enter any city name or click <strong>My Location</strong> to view real-time meteorological statistics and a 5-day forecast.</p>
+                </div>
+
+                <!-- Loading State with Spinner -->
+                <div id="loading-state" class="status-card loading-card hidden" aria-busy="true">
+                    <div class="spinner" aria-hidden="true"></div>
+                    <p class="loading-text">Fetching latest weather data...</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="error-state" class="status-card error-card hidden" role="alert" aria-live="assertive">
+                    <div class="error-icon" aria-hidden="true">⚠️</div>
+                    <h2 id="error-title">Unable to Load Weather</h2>
+                    <p id="error-desc">Please verify the city name or check your network connection.</p>
+                    <button type="button" id="retry-btn" class="secondary-btn retry-btn">Try Again</button>
+                </div>
+            </section>
+
+            <!-- Active Weather Dashboard (Visible on Success) -->
+            <section id="weather-dashboard" class="weather-dashboard hidden" aria-label="Weather Results">
+                <!-- Hero Weather Card -->
+                <article class="hero-card" id="hero-card">
+                    <div class="hero-header">
+                        <div class="hero-location-info">
+                            <h2 id="city-name" class="city-name">—</h2>
+                            <p id="local-time" class="local-time">—</p>
+                        </div>
+                        <span id="country-badge" class="country-badge">—</span>
+                    </div>
+
+                    <div class="hero-body">
+                        <div class="hero-temp-block">
+                            <div class="temp-row">
+                                <span id="current-temp" class="current-temp">--</span>
+                                <span id="temp-unit" class="temp-unit">°C</span>
+                            </div>
+                            <p id="weather-description" class="weather-description">—</p>
+                            <div class="min-max-badge">
+                                <span>High: <strong id="temp-max">--</strong></span>
+                                <span class="badge-separator">•</span>
+                                <span>Low: <strong id="temp-min">--</strong></span>
+                            </div>
+                        </div>
+
+                        <div class="hero-icon-block">
+                            <img id="weather-icon" class="weather-icon" src="" alt="Weather condition icon" width="128" height="128">
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Detailed Metrics Grid -->
+                <section class="metrics-section" aria-label="Detailed Weather Metrics">
+                    <h3 class="section-title">Current Conditions</h3>
+                    <div class="metrics-grid">
+                        <!-- Metric 1: Feels Like -->
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span class="metric-icon" aria-hidden="true">🌡️</span>
+                                <span class="metric-label">Feels Like</span>
+                            </div>
+                            <p id="metric-feels-like" class="metric-value">--</p>
+                            <span id="metric-feels-desc" class="metric-subtext">Thermal sensation</span>
+                        </div>
+
+                        <!-- Metric 2: Humidity -->
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span class="metric-icon" aria-hidden="true">💧</span>
+                                <span class="metric-label">Humidity</span>
+                            </div>
+                            <p id="metric-humidity" class="metric-value">--</p>
+                            <span id="metric-dew-point" class="metric-subtext">Relative moisture</span>
+                        </div>
+
+                        <!-- Metric 3: Wind -->
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span class="metric-icon" aria-hidden="true">🌬️</span>
+                                <span class="metric-label">Wind</span>
+                            </div>
+                            <p id="metric-wind" class="metric-value">--</p>
+                            <span id="metric-wind-dir" class="metric-subtext">Velocity & direction</span>
+                        </div>
+
+                        <!-- Metric 4: Pressure -->
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span class="metric-icon" aria-hidden="true">🧭</span>
+                                <span class="metric-label">Pressure</span>
+                            </div>
+                            <p id="metric-pressure" class="metric-value">--</p>
+                            <span class="metric-subtext">Atmospheric pressure</span>
+                        </div>
+
+                        <!-- Metric 5: Visibility -->
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span class="metric-icon" aria-hidden="true">👁️</span>
+                                <span class="metric-label">Visibility</span>
+                            </div>
+                            <p id="metric-visibility" class="metric-value">--</p>
+                            <span id="metric-vis-quality" class="metric-subtext">Horizontal distance</span>
+                        </div>
+
+                        <!-- Metric 6: Sun Cycle -->
+                        <div class="metric-card">
+                            <div class="metric-header">
+                                <span class="metric-icon" aria-hidden="true">🌅</span>
+                                <span class="metric-label">Sun Cycle</span>
+                            </div>
+                            <div class="sun-times">
+                                <div class="sun-item">
+                                    <span class="sun-label">Sunrise:</span>
+                                    <strong id="metric-sunrise">--</strong>
+                                </div>
+                                <div class="sun-item">
+                                    <span class="sun-label">Sunset:</span>
+                                    <strong id="metric-sunset">--</strong>
+                                </div>
+                            </div>
+                            <span class="metric-subtext">Local solar times</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5-Day Forecast Strip -->
+                <section class="forecast-section" aria-label="Five Day Forecast">
+                    <div class="forecast-header">
+                        <h3 class="section-title">5-Day Weather Forecast</h3>
+                        <span class="forecast-subtitle">Daily summary at peak daylight</span>
+                    </div>
+                    <div id="forecast-cards" class="forecast-cards" role="list">
+                        <!-- Populated dynamically by script.js -->
+                    </div>
+                </section>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>Data provided in real time by <a href="https://openweathermap.org/" target="_blank" rel="noopener noreferrer">OpenWeatherMap API</a>.</p>
+            <p class="footer-note">Crafted with Vanilla HTML5, CSS3, & JavaScript for frontend engineering portfolios.</p>
+        </footer>
+    </div>
+
+    <!-- API Key Settings Modal -->
+    <div id="api-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title" class="modal-title">API Key Settings</h3>
+                <button type="button" id="close-modal-btn" class="modal-close-btn" aria-label="Close dialog">✕</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-text">
+                    By default, the app uses the key configured in <code>script.js</code>. If deploying to GitHub or testing independently, you can store your personal OpenWeather key in your browser's <code>localStorage</code> below.
+                </p>
+                <div class="modal-input-group">
+                    <label for="custom-api-key-input" class="modal-label">OpenWeather API Key (32 characters):</label>
+                    <input type="text" id="custom-api-key-input" class="search-input" placeholder="Paste your OpenWeather API key here...">
+                </div>
+                <div class="api-security-notice">
+                    <strong>Security Notice:</strong> Keys entered here are stored locally in your browser's storage and are never uploaded or committed to Git.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="reset-api-key-btn" class="secondary-btn">Reset to Default</button>
+                <button type="button" id="save-api-key-btn" class="primary-btn">Save Key</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Script -->
+    <script src="script.js"></script>
+</body>
+</html>
